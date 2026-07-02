@@ -3,6 +3,8 @@
 Let AI agents (Claude, ChatGPT, n8n — any MCP client) detect, review and fill
 PDF form fields through [justfill.app](https://justfill.app).
 
+<!-- mcp-name: io.github.mrmaciej1/justfill -->
+
 ## Why agents can trust it
 
 | Source | Confidence | What it means |
