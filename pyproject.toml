@@ -1,0 +1,35 @@
+[project]
+name = "justfill-mcp"
+version = "0.4.0"
+description = "JustFill MCP server — let AI agents detect, review and fill PDF form fields via justfill.app"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+keywords = ["mcp", "pdf", "forms", "form-filling", "ai-agents", "claude", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business",
+]
+dependencies = [
+    "mcp>=1.2.0",
+    "httpx>=0.24.0",
+    "pillow>=10.0.0",
+    "pypdf>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://justfill.app"
+Repository = "https://github.com/mrmaciej1/justfill-mcp"
+Issues = "https://github.com/mrmaciej1/justfill-mcp/issues"
+
+[project.scripts]
+justfill-mcp = "justfill_mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/justfill_mcp"]
