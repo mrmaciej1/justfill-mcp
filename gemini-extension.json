@@ -1,0 +1,12 @@
+{
+  "name": "justfill",
+  "version": "0.4.1",
+  "description": "Fill PDF forms with AI — field detection on scans, visual review, templates, native AcroForm fill via justfill.app",
+  "mcpServers": {
+    "justfill": {
+      "command": "uvx",
+      "args": ["justfill-mcp"]
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}
