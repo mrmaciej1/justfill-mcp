@@ -45,8 +45,10 @@ mcp = FastMCP(
         "and scanned images) -> render_preview (inspect the detected boxes "
         "visually) -> fix mistakes with add/update/remove_field (batch: "
         "update_fields, remove_fields, prune_fields) -> render_filled_preview "
-        "to sanity-check the values in place -> fill_pdf -> save_template so "
-        "the next fill of this form is instant and exact. Field confidence: "
+        "to sanity-check the values in place -> fill_pdf -> then ASK the user "
+        "whether to save the layout as a reusable template (save_template) so "
+        "the next fill of this form is instant and exact; saved templates are "
+        "viewable at justfill.app/dashboard?tab=templates. Field confidence: "
         "1.0 means deterministic (saved template or embedded AcroForm field); "
         "lower values are ML detections — review them."
     ),
@@ -145,8 +147,9 @@ def open_pdf(
     if ws.source == "ml":
         payload["note"] = (
             "Fields are ML detections — call render_preview and visually verify "
-            "box placement before filling. Fix with update/add/remove_field, "
-            "then save_template to make future fills of this form deterministic."
+            "box placement before filling. Fix with update/add/remove_field; "
+            "after a successful fill, ask the user whether to save the layout "
+            "as a template (future fills of this form become deterministic)."
         )
     return json.dumps(payload, indent=1)
 
@@ -434,7 +437,12 @@ def fill_pdf(values: dict[str, str], output_path: str, flatten: bool = True) -> 
         "saved": str(out),
         "filled_fields": len(gen_fields),
         "output_mode": output_mode,
-        "hint": "If this form recurs, call save_template so the next fill is instant and exact.",
+        "next_step": (
+            "ASK the user now whether to save this reviewed field layout as a "
+            "reusable template (save_template) — future fills of this exact "
+            "form become instant and deterministic. Ask first; do not save "
+            "without their yes."
+        ),
     }
     overflow = _overflow_warnings(ws, values)
     if overflow:
@@ -455,16 +463,46 @@ def save_template(name: str) -> str:
     Next time this exact PDF is opened — by you or another agent session on
     this account — open_pdf returns these fields with confidence 1.0 and no
     ML pass at all. This is what makes repeat filling deterministic.
+
+    Before saving, give every field a short semantic name (update_fields with
+    name=..., e.g. 'age_score', 'total_abcd2') — names are stored in the
+    template, so the next session maps values by meaning instead of guessing
+    from coordinates. Also remove false positives first (remove_fields).
     """
     ws = _workspace()
     if not ws.fields:
         return "Nothing to save — no fields in the workspace."
+    unnamed = [f["id"] for f in ws.fields if not f.get("name")]
+    if len(unnamed) * 2 > len(ws.fields):
+        return json.dumps({
+            "error": (
+                "Most fields have no name — a template of anonymous boxes "
+                "forces every future session to re-derive what each field "
+                "means. Name them first (update_fields with name=..., short "
+                "semantic names like 'age_score'), remove false positives "
+                "(remove_fields), then call save_template again."
+            ),
+            "unnamed_field_ids": unnamed,
+        })
     document_id = str(uuid.uuid4())
     cal_fields = [field_to_calibration(f) for f in ws.fields]
     _api().save_calibration(document_id, ws.hash, name, cal_fields, ws.pdf_bytes)
     ws.source = "template"
     ws.template_name = name
-    return json.dumps({"saved_template": name, "document_id": document_id, "fields": len(cal_fields)})
+    result = {
+        "saved_template": name, "document_id": document_id, "fields": len(cal_fields),
+        "view_url": f"{_api().base_url}/dashboard?tab=templates",
+        "tell_user": (
+            "Tell the user the template is saved to their justfill.app account "
+            "and they can view, rename or delete it anytime at the view_url."
+        ),
+    }
+    if unnamed:
+        result["warning"] = (
+            f"{len(unnamed)} field(s) still unnamed ({unnamed}) — future "
+            "sessions will see opaque ids for those."
+        )
+    return json.dumps(result)
 
 
 @mcp.tool()
