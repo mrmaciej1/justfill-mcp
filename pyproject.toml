@@ -1,6 +1,6 @@
 [project]
 name = "justfill-mcp"
-version = "0.4.1"
+version = "0.4.2"
 description = "JustFill MCP server — let AI agents detect, review and fill PDF form fields via justfill.app"
 readme = "README.md"
 license = "MIT"

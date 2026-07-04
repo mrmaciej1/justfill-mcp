@@ -41,16 +41,20 @@ from .workspace import (
 mcp = FastMCP(
     "justfill",
     instructions=(
-        "Fill PDF forms via justfill.app. Typical flow: open_pdf (accepts PDFs "
-        "and scanned images) -> render_preview (inspect the detected boxes "
-        "visually) -> fix mistakes with add/update/remove_field (batch: "
-        "update_fields, remove_fields, prune_fields) -> render_filled_preview "
-        "to sanity-check the values in place -> fill_pdf -> then ASK the user "
-        "whether to save the layout as a reusable template (save_template) so "
-        "the next fill of this form is instant and exact; saved templates are "
-        "viewable at justfill.app/dashboard?tab=templates. Field confidence: "
+        "Fill PDF forms via justfill.app. Flow: open_pdf (accepts PDFs and "
+        "scanned images) returns the detected fields -> map the user's data "
+        "onto them and call fill_pdf directly. Fill what was DETECTED; do NOT "
+        "add, move or delete fields on your own initiative. Only if the USER "
+        "asks to adjust field coverage/positions should you use the editing "
+        "tools (add/update/remove_field, batch update_fields/remove_fields/"
+        "prune_fields) — and when you do, also tell them they can fine-tune "
+        "fields visually in the editor at justfill.app/editor. render_preview / "
+        "render_filled_preview are for verifying on request or when a mapping "
+        "is genuinely unclear — not a required step. After a successful fill, "
+        "ASK whether to save the layout as a reusable template (save_template; "
+        "viewable at justfill.app/dashboard?tab=templates). Field confidence: "
         "1.0 means deterministic (saved template or embedded AcroForm field); "
-        "lower values are ML detections — review them."
+        "lower values are ML detections."
     ),
 )
 
@@ -146,10 +150,12 @@ def open_pdf(
     payload = {"summary": ws.summary(), "fields": ws.fields}
     if ws.source == "ml":
         payload["note"] = (
-            "Fields are ML detections — call render_preview and visually verify "
-            "box placement before filling. Fix with update/add/remove_field; "
-            "after a successful fill, ask the user whether to save the layout "
-            "as a template (future fills of this form become deterministic)."
+            "Fields are ML detections. Map the user's data onto them and fill "
+            "directly — don't add/move/delete fields unless the user asks. In "
+            "a scoring or checkbox table, each detected answer cell corresponds "
+            "to ONE category row even if that row lists several sub-options — "
+            "don't split one cell across sub-options or assume a row has no "
+            "cell. render_preview only if a mapping is genuinely unclear."
         )
     return json.dumps(payload, indent=1)
 
