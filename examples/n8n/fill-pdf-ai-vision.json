@@ -1,0 +1,504 @@
+{
+  "id": "JustFillFillPdfVision1",
+  "name": "Fill PDF with JustFill (AI vision)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Fill ANY PDF — no template needed (AI vision)\n\nThis variant handles forms you have **not** templated. A vision model looks at the rendered form (with the detected field boxes labelled) and decides which value goes in which field. Everything else is deterministic.\n\n**Setup:**\n1. JustFill API key → https://justfill.app/account → API keys\n2. OpenRouter API key → https://openrouter.ai/keys\n3. Paste both into the **Config** node.\n\nUses OpenRouter (one key, many models). Pick any vision model in Config — e.g. `openai/gpt-4o-mini`, `google/gemini-flash-1.5`, `anthropic/claude-3.5-sonnet`. To use the OpenAI API directly instead, change the model URL to `https://api.openai.com/v1/chat/completions` and the model to `gpt-4o-mini`.\n\n**Trade-off vs the deterministic workflow:** works on any form with no template, but costs one model call per run and there is no human review — treat it as best-effort. For recurring / high-stakes forms use `fill-pdf-workflow.json` (template, deterministic).",
+        "height": 360,
+        "width": 380
+      },
+      "id": "b1000000-0000-0000-0000-000000000001",
+      "name": "How to use",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        -220
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Fill any PDF with JustFill (AI)",
+        "formDescription": "Upload a PDF (no template needed) and describe the data to put in it.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "PDF",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Data JSON",
+              "fieldType": "textarea",
+              "placeholder": "{\"Age score\": \"1\", \"Diabetes\": \"1\", \"Total\": \"6\"}",
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000002",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        200,
+        0
+      ],
+      "webhookId": "86a1b6a1-90d2-4f1e-9d55-1c6f0a8b1b01"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1000000-0000-0000-0000-000000000001",
+              "name": "apiKey",
+              "value": "jf_live_YOUR_API_KEY_HERE",
+              "type": "string"
+            },
+            {
+              "id": "c1000000-0000-0000-0000-000000000002",
+              "name": "modelKey",
+              "value": "sk-or-YOUR_OPENROUTER_KEY_HERE",
+              "type": "string"
+            },
+            {
+              "id": "c1000000-0000-0000-0000-000000000003",
+              "name": "model",
+              "value": "google/gemini-3.1-flash-lite",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000003",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://justfill.app/api/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.apiKey }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"tools/call\", \"params\": {\"name\": \"request_file_upload\", \"arguments\": {}}}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000004",
+      "name": "Mint upload slot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rpc = $input.first().json;\nif (rpc.error) throw new Error('MCP transport error: ' + JSON.stringify(rpc.error));\nif (rpc.result && rpc.result.isError) throw new Error('MCP tool error: ' + ((rpc.result.content && rpc.result.content[0] && rpc.result.content[0].text) || 'unknown'));\nconst slot = JSON.parse(rpc.result.content[0].text);\nif (slot.error) throw new Error('request_file_upload: ' + slot.error);\nconst trigger = $('On form submission').first();\nconst binKey = Object.keys(trigger.binary || {})[0];\nif (!binKey) throw new Error('No file arrived from the form.');\nslot.openBody = { jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'open_pdf', arguments: { upload_token: slot.upload_token } } };\nreturn [{ json: slot, binary: { file: trigger.binary[binKey] } }];"
+      },
+      "id": "b1000000-0000-0000-0000-000000000005",
+      "name": "Prepare upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.post_url }}",
+        "contentType": "multipart-form-data",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000006",
+      "name": "Upload PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://justfill.app/api/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.apiKey }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Prepare upload').item.json.openBody) }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000007",
+      "name": "Open PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rpc = $input.first().json;\nif (rpc.error) throw new Error('MCP transport error: ' + JSON.stringify(rpc.error));\nif (rpc.result && rpc.result.isError) throw new Error('MCP tool error: ' + ((rpc.result.content && rpc.result.content[0] && rpc.result.content[0].text) || 'unknown'));\nconst ws = JSON.parse(rpc.result.content[0].text);\nif (ws.error) throw new Error('open_pdf: ' + ws.error);\nconst wid = ws.summary.workspace_id;\nreturn [{ json: {\n  workspace_id: wid,\n  fields: ws.fields.map(f => ({ id: f.id, name: f.name || '', type: f.type, confidence: f.confidence })),\n  previewBody: { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'render_preview', arguments: { workspace_id: wid } } },\n} }];"
+      },
+      "id": "b1000000-0000-0000-0000-000000000008",
+      "name": "Parse open_pdf",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://justfill.app/api/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.apiKey }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Parse open_pdf').item.json.previewBody) }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-000000000009",
+      "name": "Render preview",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rpc = $input.first().json;\nif (rpc.error) throw new Error('MCP transport error: ' + JSON.stringify(rpc.error));\nif (rpc.result && rpc.result.isError) throw new Error('MCP tool error: ' + ((rpc.result.content && rpc.result.content[0] && rpc.result.content[0].text) || 'unknown'));\n// The rendered form (boxes labelled with field ids) + the field list with\n// each box's detector confidence + the user's data -> a vision request.\n// The confidence + false-positive/false-negative warning is what stops the\n// model filling spurious boxes (e.g. a stray box drawn over a printed digit).\nconst img = rpc.result.content.find(c => c.type === 'image');\nif (!img) throw new Error('render_preview returned no image.');\nconst parsed = $('Parse open_pdf').item.json;\nconst raw = $('On form submission').first().json['Data JSON'];\nlet data; try { data = JSON.parse(raw); } catch (e) { throw new Error('Data JSON must be valid JSON.'); }\n\nconst fieldList = parsed.fields.map(f => {\n  const c = (typeof f.confidence === 'number') ? ` confidence ${f.confidence.toFixed(2)}` : '';\n  return f.name ? `${f.id} (${f.name};${c})` : `${f.id} (${c.trim()})`;\n}).join('; ');\nconst prompt = [\n  'You are filling a PDF form. The image shows the form with each detected input box outlined and labelled with its field id.',\n  'Detected fields and the detector\\u2019s confidence that each box is a REAL input field:',\n  fieldList + '.',\n  '',\n  'IMPORTANT \\u2014 detection is imperfect:',\n  '- FALSE POSITIVES: some boxes are not real inputs (e.g. a stray box drawn over printed text or a number). Low-confidence boxes are the usual suspects. Do NOT put a value in a box unless you are confident it is the correct place for that value.',\n  '- FALSE NEGATIVES: some real fields may be missing entirely. If a value has no clearly-correct box, OMIT it \\u2014 never force it into a wrong or low-confidence box.',\n  '',\n  'Put this data into the form: ' + JSON.stringify(data) + '.',\n  'Return ONLY a JSON object mapping field_id -> string value, for the boxes where the value clearly belongs. Do not invent ids that are not in the list. For a checkbox use \"x\".',\n].join('\\n');\n\nconst body = {\n  model: $('Config').item.json.model || 'google/gemini-3.1-flash-lite',\n  messages: [{ role: 'user', content: [\n    { type: 'text', text: prompt },\n    { type: 'image_url', image_url: { url: `data:${img.mimeType};base64,${img.data}` } },\n  ] }],\n  response_format: { type: 'json_object' },\n  max_tokens: 800,\n  temperature: 0,\n};\nreturn [{ json: { workspace_id: parsed.workspace_id, requestBody: body } }];"
+      },
+      "id": "b1000000-0000-0000-0000-00000000000a",
+      "name": "Build vision request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.modelKey }}"
+            },
+            {
+              "name": "X-Title",
+              "value": "JustFill n8n"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.requestBody) }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-00000000000b",
+      "name": "Vision model",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const msg = $input.first().json.choices?.[0]?.message?.content;\nif (!msg) throw new Error('The vision model returned no content.');\nlet map; try { map = JSON.parse(msg); } catch (e) { throw new Error('Model did not return JSON: ' + msg.slice(0, 200)); }\nconst wid = $('Build vision request').item.json.workspace_id;\nconst valid = new Set($('Parse open_pdf').item.json.fields.map(f => f.id));\nconst values = {};\nfor (const [k, v] of Object.entries(map)) if (valid.has(k)) values[k] = String(v);\nif (!Object.keys(values).length) throw new Error('The model mapped nothing to valid field ids.');\nreturn [{ json: { workspace_id: wid, values, fillBody: { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'fill_pdf', arguments: { workspace_id: wid, values } } } } }];"
+      },
+      "id": "b1000000-0000-0000-0000-00000000000c",
+      "name": "Map values to fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://justfill.app/api/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $('Config').item.json.apiKey }}"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.fillBody) }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-00000000000d",
+      "name": "Fill PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rpc = $input.first().json;\nif (rpc.error) throw new Error('MCP transport error: ' + JSON.stringify(rpc.error));\nif (rpc.result && rpc.result.isError) throw new Error('MCP tool error: ' + ((rpc.result.content && rpc.result.content[0] && rpc.result.content[0].text) || 'unknown'));\nconst out = JSON.parse(rpc.result.content[0].text);\nif (out.error) throw new Error('fill_pdf: ' + out.error);\nreturn [{ json: { download_url: out.download_url, output_mode: out.output_mode, filled_fields: out.filled_fields, warnings: out.warnings || null } }];"
+      },
+      "id": "b1000000-0000-0000-0000-00000000000e",
+      "name": "Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "respondWith": "redirect",
+        "redirectUrl": "={{ $json.download_url }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-0000-0000-00000000000f",
+      "name": "Redirect to filled PDF",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        0
+      ],
+      "webhookId": "86a1b6a1-90d2-4f1e-9d55-1c6f0a8b1b02"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Mint upload slot",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mint upload slot": {
+      "main": [
+        [
+          {
+            "node": "Prepare upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare upload": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF": {
+      "main": [
+        [
+          {
+            "node": "Open PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Open PDF": {
+      "main": [
+        [
+          {
+            "node": "Parse open_pdf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse open_pdf": {
+      "main": [
+        [
+          {
+            "node": "Render preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Render preview": {
+      "main": [
+        [
+          {
+            "node": "Build vision request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build vision request": {
+      "main": [
+        [
+          {
+            "node": "Vision model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vision model": {
+      "main": [
+        [
+          {
+            "node": "Map values to fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map values to fields": {
+      "main": [
+        [
+          {
+            "node": "Fill PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill PDF": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Result": {
+      "main": [
+        [
+          {
+            "node": "Redirect to filled PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

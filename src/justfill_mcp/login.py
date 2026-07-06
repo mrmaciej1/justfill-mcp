@@ -2,7 +2,10 @@
 
 Starts a one-shot loopback HTTP listener, opens https://justfill.app/authorize
 in the browser, the logged-in user clicks Authorize, and the freshly minted
-API key arrives at http://127.0.0.1:PORT/callback?key=... The key is stored in
+API key arrives at http://127.0.0.1:PORT/callback?key=...&state=<nonce>. The
+nonce is minted here and must round-trip through the authorize page — without
+it, any local process or drive-by web page spraying loopback ports could plant
+a foreign key (key fixation) while the listener is up. The key is stored in
 ~/.config/justfill/credentials.json (0600); the API client picks it up
 automatically when JUSTFILL_API_KEY is not set.
 """
@@ -11,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import socket
 import sys
 import threading
@@ -54,6 +58,7 @@ def _save(key: str, app_url: str) -> Path:
 
 def main() -> int:
     app_url = (os.getenv("JUSTFILL_APP_URL") or "https://justfill.app").rstrip("/")
+    nonce = secrets.token_urlsafe(16)
     result: dict = {}
     ready = threading.Event()
 
@@ -63,7 +68,15 @@ def main() -> int:
             if parsed.path != "/callback":
                 self.send_response(404); self.end_headers()
                 return
-            key = (parse_qs(parsed.query).get("key") or [""])[0]
+            qs = parse_qs(parsed.query)
+            key = (qs.get("key") or [""])[0]
+            state = (qs.get("state") or [""])[0]
+            # The nonce binds the callback to THIS login flow — a request
+            # without it (e.g. a drive-by page spraying loopback ports to
+            # plant a foreign key) is rejected and the wait continues.
+            if not secrets.compare_digest(state, nonce):
+                self.send_response(403); self.end_headers()
+                return
             if key.startswith("jf_"):
                 result["key"] = key
             self.send_response(200)
@@ -82,7 +95,10 @@ def main() -> int:
     server = HTTPServer(("127.0.0.1", port), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
-    url = f"{app_url}/authorize?port={port}&name={quote('MCP on ' + (os.uname().nodename if hasattr(os, 'uname') else 'this computer'))}"
+    url = (
+        f"{app_url}/authorize?port={port}&state={nonce}"
+        f"&name={quote('MCP on ' + (os.uname().nodename if hasattr(os, 'uname') else 'this computer'))}"
+    )
     print("Opening your browser to authorize JustFill MCP…")
     print(f"If it does not open, visit:\n  {url}\n")
     webbrowser.open(url)

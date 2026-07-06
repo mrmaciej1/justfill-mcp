@@ -150,12 +150,17 @@ def open_pdf(
     payload = {"summary": ws.summary(), "fields": ws.fields}
     if ws.source == "ml":
         payload["note"] = (
-            "Fields are ML detections. Map the user's data onto them and fill "
-            "directly — don't add/move/delete fields unless the user asks. In "
-            "a scoring or checkbox table, each detected answer cell corresponds "
-            "to ONE category row even if that row lists several sub-options — "
-            "don't split one cell across sub-options or assume a row has no "
-            "cell. render_preview only if a mapping is genuinely unclear."
+            "Fields are ML detections (each has a `confidence`). Map the user's "
+            "data onto them and fill directly — don't add/move/delete fields "
+            "unless the user asks. Detection is imperfect: a LOW-confidence box "
+            "may be a false positive (e.g. a stray box over printed text or a "
+            "digit) — do NOT put a value in it unless you're sure it's the "
+            "right input; and some real fields may be missing (false negative), "
+            "so if a value has no clearly-correct box, omit it rather than "
+            "forcing it into a wrong one. In a scoring or checkbox table, each "
+            "detected answer cell corresponds to ONE category row even if that "
+            "row lists several sub-options — don't split one cell across "
+            "sub-options. render_preview only if a mapping is genuinely unclear."
         )
     return json.dumps(payload, indent=1)
 

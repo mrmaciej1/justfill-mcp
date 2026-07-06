@@ -1,24 +1,59 @@
-# JustFill × n8n — deterministic PDF form filling
+# JustFill × n8n — PDF form filling
 
-Import-ready workflow: **fill-pdf-workflow.json** (n8n → Workflows → Import
-from File).
+Two import-ready workflows (n8n → Workflows → Import from File). Both send the
+file through a one-time capability URL (`request_file_upload` → `post_url`, no
+base64) and call the hosted MCP endpoint (`https://justfill.app/api/mcp`) as
+plain JSON-RPC over HTTP Request nodes — no MCP client library needed. The
+result is a no-auth download link (valid ~24 h).
 
-## What it does
+| Workflow | When to use | Needs |
+|----------|-------------|-------|
+| **fill-pdf-workflow.json** (deterministic) | Recurring / high-stakes forms you fill often | A saved template; one JustFill key |
+| **fill-pdf-ai-vision.json** (AI vision) | Any form, one-off, no template | JustFill key + an OpenRouter key |
 
-PDF + JSON data in → filled PDF out. **No AI model, no credentials beyond one
-API key** — data maps to form fields by name using a saved JustFill template,
-so every run is deterministic and reviewable.
+## 1. Deterministic (fill-pdf-workflow.json)
+
+PDF + JSON data in → filled PDF out. **No AI model** — data maps to form
+fields by name using a saved JustFill template, so every run is deterministic
+and reviewable.
 
 ```
 Form (PDF + JSON) → mint upload slot → POST binary → open_pdf
   → map values by field name → fill_pdf → redirect to the filled PDF
 ```
 
-Every JustFill call is a plain HTTP Request node against the hosted MCP
-endpoint (`https://justfill.app/api/mcp`) — stateless JSON-RPC, so no MCP
-client library is needed. The file travels through a one-time capability URL
-(`request_file_upload` → `post_url`), so there's no base64 and no size games;
-the result comes back as a no-auth download link (valid ~24 h).
+## 2. AI vision (fill-pdf-ai-vision.json)
+
+For forms you have **not** templated. A vision model looks at the rendered
+form — with each detected box labelled by its field id — and decides which
+value goes in which field.
+
+```
+Form (PDF + JSON) → upload → open_pdf → render_preview (labelled image)
+  → vision model returns field_id→value → fill_pdf → redirect
+```
+
+Runs through **OpenRouter** (one key, many models) — set the model in Config.
+Default is `google/gemini-3.1-flash-lite` (cheap, and maps correctly with the
+prompt below). To use the OpenAI API directly instead, point the model node at
+`https://api.openai.com/v1/chat/completions` and set the model to `gpt-4o-mini`.
+
+The model is used for ONE decision (mapping); everything else is deterministic
+HTTP. The prompt hands the model each box's detector **confidence** and warns
+it that low-confidence boxes are often false positives (and that some real
+fields may be missing) — this is what stops it filling spurious boxes (e.g. a
+stray box the detector drew over a printed digit). No box-pruning heuristic is
+used; the model reasons over the confidence signal.
+
+**Model reliability varies** — on a dense scoring table we measured: correct
+with `google/gemini-3.1-pro-preview`, `qwen/qwen3-vl-32b-instruct`,
+`x-ai/grok-4.20` (even without the confidence prompt), and
+`google/gemini-3.1-flash-lite` (with it); weaker/older tiers (gpt-4o-mini,
+mistral-medium) still mis-map. For tough forms use a top-tier vision model.
+
+**Trade-off:** works on any form with no template, but costs one model call
+per run and there is no human review — treat it as best-effort, not for
+high-stakes forms. Put both keys (JustFill + OpenRouter) into **Config**.
 
 ## Setup (2 minutes)
 

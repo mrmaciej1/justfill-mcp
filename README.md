@@ -101,8 +101,10 @@ save_template("Client intake form")    → next time: deterministic
 ## Notes
 
 - Auth is a regular justfill.app account; tokens auto-refresh on expiry.
-- Detection is free; downloads consume the account's fill allowance/credits
-  (same rules as the web app).
+- Pricing follows the same rules as the web app: template and AcroForm
+  resolution never cost anything; ML detection is free on the free plan
+  (daily caps apply) and uses per-page credits on paid plans; downloads
+  consume the account's fill allowance/credits.
 - One PDF open at a time per server session (by design — keeps ids stable).
 - This repository mirrors released versions of the MCP client (development
   happens in a private monorepo alongside the justfill.app backend). Bug

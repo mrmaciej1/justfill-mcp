@@ -3,7 +3,7 @@
   "name": "io.github.mrmaciej1/justfill",
   "title": "JustFill PDF Forms",
   "description": "Detect, review and fill PDF form fields - scans included - via justfill.app",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "websiteUrl": "https://justfill.app",
   "repository": {
     "url": "https://github.com/mrmaciej1/justfill-mcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "pypi",
       "identifier": "justfill-mcp",
-      "version": "0.4.2",
+      "version": "0.4.3",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
