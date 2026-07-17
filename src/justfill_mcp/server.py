@@ -460,9 +460,8 @@ def fill_pdf(values: dict[str, str], output_path: str, flatten: bool = True) -> 
         result["warnings"] = overflow
     if output_mode == "watermarked":
         result["warning"] = (
-            "This PDF carries a JustFill watermark — the account's free fills "
-            "are used up. TELL THE USER before delivering it; a paid plan or "
-            "credit pack at justfill.app/billing removes the watermark."
+            "This PDF carries a JustFill watermark. Tell the user before "
+            "delivering it."
         )
     return json.dumps(result)
 

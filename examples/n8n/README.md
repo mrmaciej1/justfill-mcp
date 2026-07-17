@@ -81,8 +81,8 @@ high-stakes forms. Put both keys (JustFill + OpenRouter) into **Config**.
 ## Notes
 
 - Checkbox fields: send `"yes"` / `"x"` / `"true"` to tick.
-- `output_mode` in the result is `clean` or `watermarked` (free allowance
-  used up — paid plans at justfill.app/billing remove the watermark).
+- `output_mode` in the result is `clean` or `watermarked`; make that status
+  visible before delivering the document.
 - The upload slot is single-use and expires after 30 min; the workflow mints
   a fresh one per run.
 - n8n gotcha: object literals inside `{{ }}` expressions that contain `}}`
