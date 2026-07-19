@@ -32,10 +32,13 @@ from .workspace import (
     estimate_fit,
     field_from_box2d,
     field_from_pixels,
+    field_geometry_signature,
     field_to_calibration,
     field_to_generation,
+    filled_preview_signature,
     page_sizes_pt,
     pdf_from_image,
+    visual_review_requirements,
 )
 
 mcp = FastMCP(
@@ -43,16 +46,19 @@ mcp = FastMCP(
     instructions=(
         "Fill PDF forms via justfill.app. Flow: open_pdf (accepts PDFs and "
         "scanned images) returns the detected fields -> map the user's data "
-        "onto them and call fill_pdf directly. Fill what was DETECTED; do NOT "
+        "onto them. For an ML-detected layout, you MUST inspect render_preview "
+        "and render_filled_preview for every page receiving values before "
+        "fill_pdf; the tool enforces this. Saved templates and embedded "
+        "AcroForms can be filled directly. Fill what was DETECTED; do NOT "
         "add, move or delete fields on your own initiative. Only if the USER "
         "asks to adjust field coverage/positions should you use the editing "
         "tools (add/update/remove_field, batch update_fields/remove_fields/"
         "prune_fields) — and when you do, also tell them they can fine-tune "
-        "fields visually in the editor at justfill.app/editor. render_preview / "
-        "render_filled_preview are for verifying on request or when a mapping "
-        "is genuinely unclear — not a required step. After a successful fill, "
+        "fields visually in the editor at justfill.app/editor. After a successful fill, "
         "ASK whether to save the layout as a reusable template (save_template; "
-        "viewable at justfill.app/dashboard?tab=templates). Field confidence: "
+        "viewable at justfill.app/dashboard?tab=templates). When completely "
+        "done with the document, call close_workspace to release its temporary "
+        "in-memory data. Field confidence: "
         "1.0 means deterministic (saved template or embedded AcroForm field); "
         "lower values are ML detections."
     ),
@@ -160,7 +166,9 @@ def open_pdf(
             "forcing it into a wrong one. In a scoring or checkbox table, each "
             "detected answer cell corresponds to ONE category row even if that "
             "row lists several sub-options — don't split one cell across "
-            "sub-options. render_preview only if a mapping is genuinely unclear."
+            "sub-options. REQUIRED: inspect render_preview and then "
+            "render_filled_preview with the exact values for every page being "
+            "filled. fill_pdf will reject stale or missing visual review."
         )
     return json.dumps(payload, indent=1)
 
@@ -179,6 +187,19 @@ def list_fields(page_index: int | None = None) -> str:
 
 
 @mcp.tool()
+def close_workspace() -> str:
+    """Release the current PDF and field data when work is finished.
+
+    Saved templates and output PDFs are not deleted. This operation is
+    idempotent, which makes it safe to call from automation cleanup blocks.
+    """
+    global _ws
+    already_closed = _ws is None
+    _ws = None
+    return json.dumps({"closed": not already_closed, "already_closed": already_closed})
+
+
+@mcp.tool()
 def render_preview(page_index: int = 0) -> MCPImage:
     """Render a page with the working field boxes drawn on it.
 
@@ -190,6 +211,11 @@ def render_preview(page_index: int = 0) -> MCPImage:
     render = _api().render_page(ws.pdf_bytes, page=page_index, dpi=150)
     ws.page_count = render.get("pageCount", ws.page_count)
     png = draw_overlay(render["imageBase64"], ws.fields, page_index)
+    state = dict(ws.review_state)
+    field_pages = dict(state.get("field_pages") or {})
+    field_pages[str(page_index)] = field_geometry_signature(ws.fields, page_index)
+    state["field_pages"] = field_pages
+    ws.review_state = state
     return MCPImage(data=png, format="png")
 
 
@@ -203,9 +229,17 @@ def render_filled_preview(values: dict[str, str], page_index: int = 0) -> MCPIma
     use it to verify placement, alignment and obvious overflow, then fill_pdf.
     """
     ws = _workspace()
+    unknown = [field_id for field_id in values if not any(f["id"] == field_id for f in ws.fields)]
+    if unknown:
+        raise RuntimeError(f"Unknown field ids: {unknown}. Use list_fields.")
     render = _api().render_page(ws.pdf_bytes, page=page_index, dpi=150)
     ws.page_count = render.get("pageCount", ws.page_count)
     png = draw_filled_overlay(render["imageBase64"], ws.fields, values, page_index, dpi=150)
+    state = dict(ws.review_state)
+    filled_pages = dict(state.get("filled_pages") or {})
+    filled_pages[str(page_index)] = filled_preview_signature(ws.fields, values, page_index)
+    state["filled_pages"] = filled_pages
+    ws.review_state = state
     return MCPImage(data=png, format="png")
 
 
@@ -440,6 +474,16 @@ def fill_pdf(values: dict[str, str], output_path: str, flatten: bool = True) -> 
     if not gen_fields:
         return json.dumps({"error": "No values matched any field id."})
 
+    required = visual_review_requirements(ws.source, ws.review_state, ws.fields, values)
+    if required:
+        return json.dumps({
+            "error": (
+                "Visual review is required for this ML-detected layout before filling. "
+                "Inspect every returned preview, then retry fill_pdf without changing values."
+            ),
+            "required_actions": required,
+        })
+
     pdf, output_mode = _api().generate_pdf(ws.pdf_bytes, json.dumps(gen_fields), flatten=flatten)
     out = Path(output_path).expanduser()
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -482,6 +526,16 @@ def save_template(name: str) -> str:
     ws = _workspace()
     if not ws.fields:
         return "Nothing to save — no fields in the workspace."
+    required = visual_review_requirements(
+        ws.source, ws.review_state, ws.fields, require_filled_preview=False
+    )
+    if required:
+        return json.dumps({
+            "error": (
+                "Review the current ML field layout on every page before saving it as a template."
+            ),
+            "required_actions": required,
+        })
     unnamed = [f["id"] for f in ws.fields if not f.get("name")]
     if len(unnamed) * 2 > len(ws.fields):
         return json.dumps({

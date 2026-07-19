@@ -12,12 +12,15 @@ from justfill_mcp.workspace import (
     draw_filled_overlay,
     draw_overlay,
     estimate_fit,
+    field_geometry_signature,
     field_from_box2d,
     field_from_pixels,
     field_to_calibration,
     field_to_generation,
+    filled_preview_signature,
     page_sizes_pt,
     pdf_from_image,
+    visual_review_requirements,
 )
 
 
@@ -126,6 +129,33 @@ def test_workspace_get_field_and_summary():
     s = ws.summary()
     assert s["total_fields"] == 2
     assert s["fields_per_page"] == {0: 1, 1: 1}
+    assert s["visual_review_required"] is False
+
+
+def test_visual_review_signatures_track_exact_layout_and_page_values():
+    fields = [
+        {"id": "F1", "name": "name", "x": 10, "y": 10, "w": 20, "h": 3,
+         "page_index": 0, "type": "field", "source": "ml", "confidence": 0.8,
+         "fillable": None},
+        {"id": "F2", "name": "city", "x": 10, "y": 20, "w": 20, "h": 3,
+         "page_index": 1, "type": "field", "source": "ml", "confidence": 0.8,
+         "fillable": None},
+    ]
+    values = {"F1": "Alice", "F2": "Warsaw"}
+    state = {
+        "field_pages": {"0": field_geometry_signature(fields, 0)},
+        "filled_pages": {"0": filled_preview_signature(fields, values, 0)},
+    }
+    assert visual_review_requirements("ml", state, fields, {"F1": "Alice"}) == []
+    changed_value = visual_review_requirements("ml", state, fields, {"F1": "Bob"})
+    assert [item["tool"] for item in changed_value] == ["render_filled_preview"]
+
+    fields[0]["x"] = 11
+    changed_geometry = visual_review_requirements("ml", state, fields, {"F1": "Alice"})
+    assert {item["tool"] for item in changed_geometry} == {
+        "render_preview", "render_filled_preview",
+    }
+    assert visual_review_requirements("acroform", {}, fields, values) == []
 
 
 def test_draw_overlay_produces_png():

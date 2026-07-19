@@ -1,5 +1,6 @@
 """Regression tests for tool-level workspace state in server.py."""
 
+import base64
 import io
 import json
 
@@ -33,6 +34,11 @@ class FakeClient:
     def generate_pdf(self, pdf_bytes, fields_json, flatten=True):
         self.last_fields = json.loads(fields_json)
         return b"%PDF-1.4 filled", "clean"
+
+    def render_page(self, pdf_bytes, page=0, dpi=150):
+        buf = io.BytesIO()
+        Image.new("RGB", (850, 1100), "white").save(buf, format="PNG")
+        return {"imageBase64": base64.b64encode(buf.getvalue()).decode(), "pageCount": 1}
 
 
 def test_open_pdf_template_path_replaces_workspace(tmp_path, monkeypatch):
@@ -82,6 +88,20 @@ def test_open_pdf_rejects_garbage_with_clear_error(tmp_path, monkeypatch):
     monkeypatch.setattr(srv, "_client", FakeClient())
     out = json.loads(srv.open_pdf(str(bad)))
     assert "neither a PDF nor a readable image" in out["error"]
+
+
+def test_close_workspace_releases_memory_and_is_idempotent(tmp_path, monkeypatch):
+    _open_ml_pdf(tmp_path, monkeypatch)
+
+    assert json.loads(srv.close_workspace()) == {
+        "closed": True,
+        "already_closed": False,
+    }
+    assert srv._ws is None
+    assert json.loads(srv.close_workspace()) == {
+        "closed": False,
+        "already_closed": True,
+    }
 
 
 def test_force_detect_skips_template(tmp_path, monkeypatch):
@@ -150,11 +170,17 @@ def test_fill_pdf_align_mapping_and_overflow_warning(tmp_path, monkeypatch):
     _open_ml_pdf(tmp_path, monkeypatch)
     fid = json.loads(srv.add_field(x=10, y=10, w=6, h=2, name="tiny", align="right"))["id"]
     out_path = tmp_path / "out.pdf"
-    out = json.loads(srv.fill_pdf(
-        {fid: "a very long value that cannot possibly fit in such a narrow box, repeated "
-              "a very long value that cannot possibly fit in such a narrow box"},
-        str(out_path),
-    ))
+    values = {
+        fid: "a very long value that cannot possibly fit in such a narrow box, repeated "
+             "a very long value that cannot possibly fit in such a narrow box"
+    }
+    blocked = json.loads(srv.fill_pdf(values, str(out_path)))
+    assert {item["tool"] for item in blocked["required_actions"]} == {
+        "render_preview", "render_filled_preview",
+    }
+    srv.render_preview()
+    srv.render_filled_preview(values)
+    out = json.loads(srv.fill_pdf(values, str(out_path)))
     assert out["saved"] == str(out_path)
     assert any(fid in w for w in out["warnings"])
     sent = srv._client.last_fields
@@ -163,8 +189,6 @@ def test_fill_pdf_align_mapping_and_overflow_warning(tmp_path, monkeypatch):
 
 def test_render_filled_preview_no_fill_consumed(tmp_path, monkeypatch):
     _open_ml_pdf(tmp_path, monkeypatch)
-    import base64
-
     ws = srv._ws
     buf = io.BytesIO()
     Image.new("RGB", (850, 1100), "white").save(buf, format="PNG")
@@ -186,3 +210,36 @@ def test_render_filled_preview_no_fill_consumed(tmp_path, monkeypatch):
     assert img.data[:8] == b"\x89PNG\r\n\x1a\n"
     assert calls == ["render"]
     assert ws.fields  # workspace untouched
+
+
+def test_ml_review_receipt_is_exact_and_invalidated_by_geometry(tmp_path, monkeypatch):
+    _open_ml_pdf(tmp_path, monkeypatch)
+    values = {"M1": "Alice"}
+    output = tmp_path / "filled.pdf"
+
+    srv.render_preview(0)
+    srv.render_filled_preview(values, 0)
+    assert "saved" in json.loads(srv.fill_pdf(values, str(output)))
+
+    changed = json.loads(srv.fill_pdf({"M1": "Bob"}, str(output)))
+    assert [action["tool"] for action in changed["required_actions"]] == [
+        "render_filled_preview"
+    ]
+
+    srv.update_field("M1", x=11.0)
+    stale = json.loads(srv.fill_pdf(values, str(output)))
+    assert {action["tool"] for action in stale["required_actions"]} == {
+        "render_preview", "render_filled_preview",
+    }
+
+
+def test_deterministic_template_does_not_require_visual_review(tmp_path, monkeypatch):
+    pdf = tmp_path / "template.pdf"
+    pdf.write_bytes(b"%PDF-1.4 template")
+    from justfill_mcp.workspace import content_hash
+
+    monkeypatch.setattr(srv, "_client", FakeClient(content_hash(pdf.read_bytes())))
+    monkeypatch.setattr(srv, "_ws", None)
+    srv.open_pdf(str(pdf))
+    out = json.loads(srv.fill_pdf({"T1": "Alice"}, str(tmp_path / "out.pdf")))
+    assert out["filled_fields"] == 1

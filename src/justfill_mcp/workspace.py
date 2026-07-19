@@ -24,6 +24,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import io
+import json
 import math
 import time
 import uuid
@@ -229,6 +230,111 @@ def field_to_calibration(f: dict) -> dict:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Visual-review receipts for non-deterministic (ML) layouts.
+#
+# A receipt is deliberately derived from the field geometry and, for the
+# filled preview, the exact non-empty values shown on that page.  It therefore
+# becomes stale automatically after an edit or a changed value without fragile
+# "dirty" flags sprinkled through every mutating tool.
+
+_REVIEW_FIELD_KEYS = (
+    "id", "name", "x", "y", "w", "h", "page_index", "type", "source",
+    "confidence", "fillable", "align", "vertical_align",
+)
+
+
+def _page_review_fields(fields: list[dict], page_index: int) -> list[dict]:
+    page_fields = []
+    for item in fields:
+        if int(item.get("page_index", 0)) != page_index:
+            continue
+        page_fields.append({key: item.get(key) for key in _REVIEW_FIELD_KEYS})
+    return sorted(page_fields, key=lambda item: str(item.get("id", "")))
+
+
+def _review_hash(payload: object) -> str:
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def field_geometry_signature(fields: list[dict], page_index: int) -> str:
+    """Fingerprint exactly the field layout displayed by render_preview."""
+    return _review_hash({"page_index": page_index, "fields": _page_review_fields(fields, page_index)})
+
+
+def filled_preview_signature(fields: list[dict], values: dict[str, str], page_index: int) -> str:
+    """Fingerprint the layout plus exact non-empty values displayed on one page."""
+    page_fields = _page_review_fields(fields, page_index)
+    page_ids = {str(field["id"]) for field in page_fields}
+    page_values = {
+        str(field_id): str(value)
+        for field_id, value in values.items()
+        if str(field_id) in page_ids and str(value) != ""
+    }
+    return _review_hash(
+        {"page_index": page_index, "fields": page_fields, "values": page_values}
+    )
+
+
+def visual_review_requirements(
+    source: str,
+    review_state: dict | None,
+    fields: list[dict],
+    values: dict[str, str] | None = None,
+    *,
+    require_filled_preview: bool = True,
+) -> list[dict]:
+    """Return the previews still required before an ML layout is trusted.
+
+    When ``values`` is supplied, only pages receiving a non-empty value are
+    relevant.  Template saving passes no values and checks every page that has
+    a field, without requiring a filled preview.
+    """
+    if source != "ml":
+        return []
+    state = review_state or {}
+    field_receipts = state.get("field_pages") or {}
+    filled_receipts = state.get("filled_pages") or {}
+    if values is None:
+        pages = sorted({int(field.get("page_index", 0)) for field in fields})
+    else:
+        valued_ids = {str(field_id) for field_id, value in values.items() if str(value) != ""}
+        pages = sorted(
+            {
+                int(field.get("page_index", 0))
+                for field in fields
+                if str(field.get("id")) in valued_ids
+            }
+        )
+
+    required: list[dict] = []
+    for page_index in pages:
+        page_key = str(page_index)
+        if field_receipts.get(page_key) != field_geometry_signature(fields, page_index):
+            required.append(
+                {
+                    "tool": "render_preview",
+                    "page_index": page_index,
+                    "reason": "field layout has not been reviewed or changed since review",
+                }
+            )
+        if (
+            require_filled_preview
+            and values is not None
+            and filled_receipts.get(page_key)
+            != filled_preview_signature(fields, values, page_index)
+        ):
+            required.append(
+                {
+                    "tool": "render_filled_preview",
+                    "page_index": page_index,
+                    "reason": "these exact values have not been reviewed in place",
+                }
+            )
+    return required
+
+
 @dataclass
 class Workspace:
     """One open PDF and its working field set."""
@@ -241,6 +347,7 @@ class Workspace:
     template_name: str | None = None
     converted_from_image: bool = False
     fields: list[dict] = field(default_factory=list)
+    review_state: dict = field(default_factory=dict)
 
     def get_field(self, field_id: str) -> dict:
         for f in self.fields:
@@ -260,6 +367,7 @@ class Workspace:
             "template_name": self.template_name,
             "total_fields": len(self.fields),
             "fields_per_page": by_page,
+            "visual_review_required": self.source == "ml",
         }
         if self.converted_from_image:
             out["converted_from_image"] = True
