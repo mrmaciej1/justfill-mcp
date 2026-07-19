@@ -400,10 +400,18 @@ def draw_overlay(image_b64: str, fields: list[dict], page_index: int) -> bytes:
         else:
             color = (220, 38, 38)      # red
         draw.rectangle([x0, y0, x1, y1], outline=color, width=2)
-        label = f["id"] if not f.get("name") else f"{f['id']}:{f['name'][:18]}"
-        ty = y0 - 12 if y0 >= 12 else y1 + 2
-        draw.rectangle([x0, ty, x0 + 6 * len(label) + 4, ty + 11], fill=color)
-        draw.text((x0 + 2, ty), label, fill=(255, 255, 255))
+        # Keep the id inside its own rectangle. Putting a tag above the box is
+        # ambiguous on tightly stacked rows: the id for row B visually lands
+        # inside row A and vision models can select the wrong destination.
+        label = str(f["id"])
+        font = _preview_font(12)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        label_w = bbox[2] - bbox[0]
+        label_h = bbox[3] - bbox[1]
+        tx = x0 + 2
+        ty = y0 + 1
+        draw.rectangle([tx - 1, ty - 1, tx + label_w + 3, ty + label_h + 1], fill=color)
+        draw.text((tx, ty), label, fill=(255, 255, 255), font=font)
 
     buf = io.BytesIO()
     img.save(buf, format="PNG")

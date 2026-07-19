@@ -78,7 +78,7 @@ documents in the public template review.
 - External URL:
   `https://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=n8n&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=vision_template`
 
-This variant requires a JustFill key and an OpenRouter key. It renders all
+This variant requires a JustFill key and a Gemini API key. It renders all
 detected pages, uses the first vision call for mapping, renders the proposed
 values on every used page, and sends both source and filled images to a second
 vision call. `fill_pdf` is reachable only through an explicit approval gate;

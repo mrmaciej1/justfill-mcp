@@ -247,3 +247,21 @@ def test_draw_filled_overlay_renders_values_and_checkbox():
     # ink must have landed: the page is no longer pure white
     colors = out.getcolors(maxcolors=1_000_000)
     assert any(c != (255, 255, 255) for _, c in colors)
+
+
+def test_draw_overlay_keeps_dense_row_id_inside_its_own_box():
+    img = Image.new("RGB", (400, 500), "white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    fields = [
+        {"id": "row_a", "x": 10, "y": 20, "w": 60, "h": 5,
+         "page_index": 0, "confidence": 0.9, "source": "ml"},
+        {"id": "row_b", "x": 10, "y": 25, "w": 60, "h": 5,
+         "page_index": 0, "confidence": 0.9, "source": "ml"},
+    ]
+
+    out = Image.open(io.BytesIO(draw_overlay(b64, fields, 0))).convert("RGB")
+    # The row-A tag starts inside y=100, never in the preceding white area.
+    assert out.getpixel((47, 95)) == (255, 255, 255)
+    assert out.getpixel((47, 105)) == (22, 163, 74)

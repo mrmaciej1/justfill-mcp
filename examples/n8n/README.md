@@ -9,7 +9,7 @@ result is a no-auth download link (valid ~24 h).
 | Workflow | When to use | Needs |
 |----------|-------------|-------|
 | **fill-pdf-workflow.json** (deterministic) | Recurring / high-stakes forms you fill often | A saved template; one JustFill key |
-| **fill-pdf-ai-vision.json** (AI vision) | Any form, one-off, no template | JustFill key + an OpenRouter key |
+| **fill-pdf-ai-vision.json** (AI vision) | Any form, one-off, no template | JustFill key + a Gemini API key |
 
 ## 1. Deterministic (fill-pdf-workflow.json)
 
@@ -32,33 +32,39 @@ values before the PDF can be produced.
 ```
 Form (PDF + JSON) → upload → open_pdf
   → render_preview for every detected page
-  → mapping vision model returns field_id→value
+  → mapping vision model returns source-key→field-id pairs
+  → workflow copies the original values deterministically
   → render_filled_preview for every page receiving a value
   → independent vision review → explicit approval gate
   → fill_pdf with the unchanged values → redirect
 ```
 
-Runs through **OpenRouter** (one key, many models) — set the model in Config.
-Default is `google/gemini-3.1-flash-lite`. If you change provider, update both
-model HTTP nodes: **Mapping vision model** and **Review vision model**.
+Calls the **Gemini API directly** — set the model in Config. The default is the
+stable, vision-capable `gemini-3.5-flash`. Both model calls use Gemini's
+structured JSON output, ultra-high image resolution for dense field labels,
+and disabled interaction storage. The mapping pass uses high reasoning because
+dense forms need reliable spatial association; the independent review pass uses
+low reasoning to keep the second call inexpensive.
 
-The mapping prompt includes every labelled page, field id, page number, type,
-and detector **confidence**. The reviewer receives both the labelled source
-and the filled image for each used page plus the proposed mapping. Invalid JSON,
+The mapping prompt includes every labelled page, field id, box coordinates,
+page number, type, and detector **confidence**. Gemini returns only source keys
+and field ids; the workflow rejects unknown or duplicate identifiers and then
+copies values from the untouched input JSON. The reviewer receives both the labelled source
+and the filled image for each used page plus the proposed source-key-to-field
+mapping, so it verifies the user's intended label instead of guessing intent
+from a value such as a company name. Invalid JSON,
 invented field ids, missing images, inconsistent values, a negative review, or
 an approval containing issues all stop the run before `fill_pdf`.
 
-**Model reliability varies** — on a dense scoring table we measured: correct
-with `google/gemini-3.1-pro-preview`, `qwen/qwen3-vl-32b-instruct`,
-`x-ai/grok-4.20` (even without the confidence prompt), and
-`google/gemini-3.1-flash-lite` (with it); weaker/older tiers (gpt-4o-mini,
-mistral-medium) still mis-map. For tough forms use a top-tier vision model.
+**Model reliability varies** — the default was selected for low-cost vision
+mapping and should still be treated as probabilistic. For recurring or
+high-impact forms, use the deterministic template workflow instead.
 
 **Trade-off:** works on an unfamiliar form without a template, but costs two
 model calls per run. Automated visual review lowers the risk of silent errors;
 it does not make probabilistic mapping equivalent to human approval. Treat it
 as best-effort and manually review high-impact output. Put both keys (JustFill
-+ OpenRouter) into **Config**.
++ Gemini) into **Config**.
 
 ## Setup (2 minutes)
 
@@ -69,8 +75,9 @@ as best-effort and manually review high-impact output. Put both keys (JustFill
    agent (Claude, Cursor, `uvx justfill-mcp`), review the detected boxes, give
    the fields semantic names (`age_score`, `total_amount`…) and `save_template`.
    Manage templates at justfill.app/dashboard?tab=templates.
-3. **AI workflow only — model key**: create an OpenRouter key, paste it into
-   Config, and keep the same vision-capable model in both model calls.
+3. **AI workflow only — model key**: create a Gemini API key in Google AI
+   Studio, paste it into Config, and keep the same vision-capable model in both
+   model calls.
 4. Run the form: upload the PDF, paste values as JSON keyed by field name:
    `{"age_score": "1", "bp_score": "1", "total_score": "5"}`.
    Deterministic key matching is case- and punctuation-insensitive; the AI
@@ -93,9 +100,13 @@ as best-effort and manually review high-impact output. Put both keys (JustFill
   visible before delivering the document.
 - The upload slot is single-use and expires after 30 min; the workflow mints
   a fresh one per run.
+- `open_pdf` has a 180-second HTTP timeout because the first dense-form
+  detection after a cold start can exceed n8n's 60-second default.
 - The AI workflow renders every page containing a detected field and every page
   that receives a proposed value. Do not bypass **Require approval** when
   adapting the workflow.
+- Field ids are drawn inside their own boxes. Keep that placement: labels drawn
+  above tightly stacked rows can visually associate row B's id with row A.
 - n8n gotcha: object literals inside `{{ }}` expressions that contain `}}`
   (e.g. `arguments: {}}`) break the expression parser — this workflow builds
   the JSON-RPC bodies in Code nodes and only `JSON.stringify(...)` in
