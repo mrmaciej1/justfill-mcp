@@ -83,6 +83,29 @@ as best-effort and manually review high-impact output. Put both keys (JustFill
    Deterministic key matching is case- and punctuation-insensitive; the AI
    variant may also accept descriptive source keys that differ from field names.
 
+## Reviewer-safe deterministic smoke test
+
+Use [`reviewer-sample-supplier-intake.pdf`](reviewer-sample-supplier-intake.pdf)
+with this entirely synthetic payload:
+
+```json
+{
+  "company_name": "Northwind LLC",
+  "vendor_reference": "V-1042",
+  "remittance_email": "ap@northwind.example"
+}
+```
+
+The sample contains three named AcroForm fields, so a reviewer can verify the
+workflow without ML or customer data. For an exact recurring business PDF,
+review and save its layout once as described above; subsequent opens use the
+saved template deterministically.
+
+The latest production audit evidence is in [`assets/`](assets/): the complete
+green workflow canvas, the filled result, and a sanitized execution report.
+The screenshots contain no API key, upload token, customer document, or real
+customer data.
+
 ## Adapting for production
 
 - Swap the Form Trigger for whatever feeds you documents: Gmail attachment,
@@ -112,4 +135,6 @@ as best-effort and manually review high-impact output. Put both keys (JustFill
   the JSON-RPC bodies in Code nodes and only `JSON.stringify(...)` in
   expressions. Keep that pattern if you extend it.
 
-Verified end-to-end on n8n 2.28.6 against production.
+Verified end-to-end on n8n 2.28.6 against production on 2026-07-20: all ten
+executable nodes succeeded, three of three values matched a saved template,
+and the downloaded PDF passed structural, extracted-text, and visual checks.

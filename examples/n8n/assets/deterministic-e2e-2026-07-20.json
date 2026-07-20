@@ -1,0 +1,82 @@
+{
+  "n8n_version": "2.28.6",
+  "workflow_id": "JustFillFillPdf1",
+  "execution_id": "1",
+  "execution_status": "success",
+  "finished": true,
+  "mode": "manual",
+  "started_at": "2026-07-20T09:07:08.949Z",
+  "stopped_at": "2026-07-20T09:07:13.697Z",
+  "mapping": {
+    "source": "template",
+    "matched": 3,
+    "unmatched": []
+  },
+  "result": {
+    "output_mode": "watermarked",
+    "filled_fields": 3,
+    "warning_count": 0
+  },
+  "executed_nodes": [
+    {
+      "name": "On form submission",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 1
+    },
+    {
+      "name": "Config",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 1
+    },
+    {
+      "name": "Mint upload slot",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 1091
+    },
+    {
+      "name": "Prepare upload",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 21
+    },
+    {
+      "name": "Upload PDF",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 851
+    },
+    {
+      "name": "Open PDF",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 1074
+    },
+    {
+      "name": "Map values to fields",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 7
+    },
+    {
+      "name": "Fill PDF",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 1400
+    },
+    {
+      "name": "Result",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 4
+    },
+    {
+      "name": "Redirect to filled PDF",
+      "runs": 1,
+      "status": "success",
+      "execution_ms": 0
+    }
+  ]
+}

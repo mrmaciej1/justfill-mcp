@@ -1,6 +1,6 @@
 # n8n template submission packet
 
-Prepared: 2026-07-18. Submit the deterministic workflow first. New n8n creators
+Prepared: 2026-07-20. Submit the deterministic workflow first. New n8n creators
 may have only one template under review, so do not block it with the AI-vision
 variant.
 
@@ -57,7 +57,7 @@ Official template catalog: `https://n8n.io/workflows/` → **Submit a template**
 
 ### Reviewer test data
 
-Use a synthetic three-field supplier form:
+Upload `reviewer-sample-supplier-intake.pdf` and use this synthetic data:
 
 ```json
 {
@@ -69,6 +69,28 @@ Use a synthetic three-field supplier form:
 
 Do not use real tax IDs, health data, card data, secrets, signatures, or customer
 documents in the public template review.
+
+### Production validation evidence
+
+Validated on 2026-07-20 in a fresh, isolated n8n 2.28.6 instance against the
+production MCP endpoint and a saved copy of the reviewer template:
+
+- execution status: `success` in 4.748 seconds;
+- 10/10 executable nodes ran once and succeeded;
+- `open_pdf` reused `source=template`;
+- 3/3 JSON keys matched, with no unmatched keys;
+- `fill_pdf` filled three fields with no warnings;
+- the technical free account correctly returned `output_mode=watermarked`;
+- the downloaded PDF parsed as one page, was flattened as expected, exposed all
+  three values to text extraction, and passed manual visual review.
+
+Submission assets:
+
+- `assets/deterministic-workflow-success.png` — full green canvas and success
+  notification, with the Config node closed;
+- `assets/deterministic-filled-result.png` — rendered synthetic output;
+- `assets/deterministic-e2e-2026-07-20.json` — sanitized timing/status report;
+- `reviewer-sample-supplier-intake.pdf` — synthetic input PDF.
 
 ## Secondary submission after the first is approved
 
@@ -87,17 +109,21 @@ described as best-effort, with manual review required before high-impact use.
 For recurring documents, the deterministic template remains the recommended
 production path.
 
-## Submission checklist
+## Primary submission checklist
 
-- Import both JSON files into a clean n8n instance and confirm no credential is
-  embedded.
-- Execute the primary workflow against production with synthetic data.
-- Execute the AI workflow's approval and rejection paths; verify that rejection
-  stops before `fill_pdf` and that every used page reaches both preview stages.
-- Capture a workflow-canvas screenshot and one result screenshot only after the
-  successful run; redact API keys and upload tokens.
-- Paste the primary copy above into n8n Creator and submit only that workflow.
-- Add the public template URL and date to
+- [x] Import the deterministic JSON into a clean n8n 2.28.6 instance; confirm
+  the public workflow contains only the documented API-key placeholder.
+- [x] Execute the primary workflow against production with synthetic data.
+- [x] Capture a workflow-canvas screenshot and one result screenshot after the
+  successful run; confirm neither exposes an API key or upload token.
+- [ ] Paste the primary copy above into n8n Creator and submit only that
+  workflow. This step requires the publisher's interactive n8n account.
+- [ ] After publication, add the public template URL and date to
   `docs/marketing/b2b-distribution-tracker.csv`.
-- Evaluate the channel by external template uploads, previews, checkouts, and
-  paid customers—not template views alone.
+- [ ] Evaluate the channel by external MCP opens/fills, checkouts, and paid
+  customers—not template views alone.
+
+The secondary AI-vision workflow has separate contract and production-approval
+evidence. Execute and capture its live rejection path only when the primary
+template has been approved and n8n allows the second submission; it is not a
+blocker for this deterministic listing.

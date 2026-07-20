@@ -163,7 +163,9 @@
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($('Prepare upload').item.json.openBody) }}",
-        "options": {}
+        "options": {
+          "timeout": 180000
+        }
       },
       "id": "a1000000-0000-0000-0000-000000000007",
       "name": "Open PDF",
