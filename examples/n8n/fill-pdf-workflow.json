@@ -4,17 +4,82 @@
   "nodes": [
     {
       "parameters": {
-        "content": "## Fill any PDF form — no AI model needed\n\n**Setup (2 min):**\n1. Get an API key at https://justfill.app/account → API keys\n2. Paste it into the **Config** node\n3. Save a template for your PDF once (open it with any MCP agent — Claude, Cursor — name the fields, `save_template`). Templates: https://justfill.app/dashboard?tab=templates\n\n**Then:** every run is deterministic — data maps to fields by name, no LLM, no per-run review.\n\nSwap the Form Trigger for Gmail/Drive/Webhook in production.",
-        "height": 320,
-        "width": 360
+        "content": "### Before you run this workflow\n\nCreate a JustFill API key at https://justfill.app/account and replace the placeholder in **Config**. Open the exact recurring PDF once with a JustFill MCP client, review and name its fields, then save the template; every later run maps JSON deterministically without an AI model.",
+        "height": 280,
+        "width": 480,
+        "color": 5
       },
       "id": "a1000000-0000-0000-0000-000000000001",
       "name": "How to use",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -160,
-        -180
+        -360,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 1. Collect the document and values\n\nThe form accepts the recurring PDF plus a JSON object. Each JSON key should match a reviewed template field name, for example `company_name` or `invoice_number`.",
+        "height": 260,
+        "width": 400,
+        "color": 7
+      },
+      "id": "a1000000-0000-0000-0000-00000000000c",
+      "name": "Collect input guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 2. Upload the PDF safely\n\nJustFill creates a one-time upload URL, and n8n sends the file as binary multipart data. The workflow never embeds the PDF as base64 inside a JSON-RPC request.",
+        "height": 260,
+        "width": 600,
+        "color": 7
+      },
+      "id": "a1000000-0000-0000-0000-00000000000d",
+      "name": "Upload PDF guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 3. Reuse reviewed field names\n\nJustFill reuses the saved layout for this PDF. The Code node matches JSON keys to named fields without case or punctuation differences and reports any unmatched keys.",
+        "height": 260,
+        "width": 400,
+        "color": 7
+      },
+      "id": "a1000000-0000-0000-0000-00000000000e",
+      "name": "Match fields guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### 4. Fill and return the original PDF\n\nJustFill writes the mapped values into the existing layout and returns a temporary download URL. The final form response redirects the user to that generated PDF.",
+        "height": 260,
+        "width": 600,
+        "color": 7
+      },
+      "id": "a1000000-0000-0000-0000-00000000000f",
+      "name": "Return result guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        -120
       ]
     },
     {
@@ -112,6 +177,7 @@
       "name": "Prepare upload",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
+      "notes": "Parses the MCP upload-slot response and preserves the submitted PDF as binary for the one-time upload.",
       "position": [
         840,
         0
@@ -184,6 +250,7 @@
       "name": "Map values to fields",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
+      "notes": "Maps submitted JSON keys to the stable field IDs from the previously reviewed JustFill template.",
       "position": [
         1440,
         0
@@ -228,6 +295,7 @@
       "name": "Result",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
+      "notes": "Shapes the JustFill response into the temporary download contract used by the final redirect node.",
       "position": [
         1840,
         0
