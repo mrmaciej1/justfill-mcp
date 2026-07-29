@@ -1,6 +1,6 @@
 [project]
 name = "justfill-mcp"
-version = "0.4.4"
+version = "0.4.5"
 description = "JustFill MCP server — let AI agents detect, review and fill PDF form fields via justfill.app"
 readme = "README.md"
 license = "MIT"
@@ -20,9 +20,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://justfill.app"
+Homepage = "https://justfill.app/mcp?utm_source=pypi&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=project_homepage"
 Repository = "https://github.com/mrmaciej1/justfill-mcp"
 Issues = "https://github.com/mrmaciej1/justfill-mcp/issues"
+"Excel to PDF Automation" = "https://justfill.app/solutions/fill-pdf-from-excel?utm_source=pypi&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=project_link"
 
 [project.scripts]
 justfill-mcp = "justfill_mcp.server:main"
