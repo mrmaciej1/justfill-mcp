@@ -1,6 +1,6 @@
 [project]
 name = "justfill-mcp"
-version = "0.4.6"
+version = "0.4.7"
 description = "JustFill MCP server — let AI agents detect, review and fill PDF form fields via justfill.app"
 readme = "README.md"
 license = "MIT"
@@ -13,7 +13,7 @@ classifiers = [
     "Topic :: Office/Business",
 ]
 dependencies = [
-    "mcp>=1.2.0",
+    "mcp>=1.2.0,<2",
     "httpx>=0.24.0",
     "pillow>=10.0.0",
     "pypdf>=4.0.0",

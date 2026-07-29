@@ -62,7 +62,7 @@ visible on the preview and fixable with one `add_field` call. Once reviewed,
 ## Setup
 
 ```bash
-uv tool install ./mcp-server        # or: pip install ./mcp-server
+uv tool install justfill-mcp
 ```
 
 Authorize once (opens the browser, one click while logged in to justfill.app):
@@ -77,6 +77,19 @@ Then the config needs no credentials at all:
 {
   "mcpServers": {
     "justfill": { "command": "justfill-mcp" }
+  }
+}
+```
+
+For a zero-install configuration, use `uvx` directly:
+
+```json
+{
+  "mcpServers": {
+    "justfill": {
+      "command": "uvx",
+      "args": ["justfill-mcp"]
+    }
   }
 }
 ```
