@@ -15,6 +15,17 @@ record, and exports the approved PDFs in a ZIP.
 [Try the five-row PDF mail merge sample](https://justfill.app/solutions/fill-pdf-from-excel?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_excel_batch)
 — no card or sales call.
 
+## Import-ready n8n workflows
+
+The repository includes two reviewed n8n workflows that call the hosted MCP
+endpoint with standard HTTP Request nodes: a deterministic workflow for a saved
+PDF template and a two-pass vision workflow for an unfamiliar form. Both can be
+inspected and imported before adding credentials.
+
+[See the workflow JSON, synthetic test PDF and production evidence](examples/n8n/README.md),
+or follow the
+[step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
+
 ## Why agents can trust it
 
 | Source | Confidence | What it means |
