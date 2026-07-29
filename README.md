@@ -5,6 +5,16 @@ PDF form fields through [justfill.app](https://justfill.app).
 
 <!-- mcp-name: io.github.mrmaciej1/justfill -->
 
+## Excel or CSV batch workflow
+
+If the source data is already in a spreadsheet and you need one filled copy of
+the same existing PDF per row, an MCP client is optional. The guided browser
+workflow imports XLSX or CSV, maps columns to reviewed PDF fields, previews each
+record, and exports the approved PDFs in a ZIP.
+
+[Try the five-row PDF mail merge sample](https://justfill.app/solutions/fill-pdf-from-excel?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_excel_batch)
+— no card or sales call.
+
 ## Why agents can trust it
 
 | Source | Confidence | What it means |
