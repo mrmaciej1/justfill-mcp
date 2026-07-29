@@ -26,6 +26,18 @@ inspected and imported before adding credentials.
 or follow the
 [step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
 
+## Gemini CLI extension
+
+Install the same reviewed MCP tools plus the included PDF workflow guidance:
+
+```bash
+gemini extensions install https://github.com/mrmaciej1/justfill-mcp
+```
+
+The extension manifest lives at the repository root and uses the published
+`justfill-mcp` package. Gemini CLI asks for normal third-party extension consent
+before enabling it.
+
 ## Why agents can trust it
 
 | Source | Confidence | What it means |
