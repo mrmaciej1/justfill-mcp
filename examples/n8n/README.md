@@ -1,5 +1,8 @@
 # JustFill × n8n — PDF form filling
 
+The deterministic workflow is also available as a
+[free reviewed template in the official n8n catalog](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-a-form-trigger/).
+
 Two import-ready workflows (n8n → Workflows → Import from File). Both send the
 file through a one-time capability URL (`request_file_upload` → `post_url`, no
 base64) and call the hosted MCP endpoint (`https://justfill.app/api/mcp`) as

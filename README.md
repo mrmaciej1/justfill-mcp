@@ -17,13 +17,18 @@ record, and exports the approved PDFs in a ZIP.
 
 ## Import-ready n8n workflows
 
-The repository includes two reviewed n8n workflows that call the hosted MCP
-endpoint with standard HTTP Request nodes: a deterministic workflow for a saved
-PDF template and a two-pass vision workflow for an unfamiliar form. Both can be
-inspected and imported before adding credentials.
+Start with the
+[free reviewed template in the official n8n workflow catalog](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-a-form-trigger/).
+It collects a PDF and JSON payload, reuses the reviewed field names saved for
+that exact form, fills the original layout and returns a temporary download
+link.
 
-[See the workflow JSON, synthetic test PDF and production evidence](examples/n8n/README.md),
-or follow the
+The repository also includes the exact deterministic workflow JSON, synthetic
+test PDF, production evidence and a separate two-pass vision workflow for an
+unfamiliar form. Both call the hosted MCP endpoint with standard HTTP Request
+nodes and can be inspected before adding credentials.
+
+[Inspect the source workflows and evidence](examples/n8n/README.md), or follow the
 [step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
 
 ## Gemini CLI extension

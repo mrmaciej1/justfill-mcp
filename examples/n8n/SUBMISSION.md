@@ -5,6 +5,8 @@ may have only one template under review, so do not block it with the AI-vision
 variant.
 
 Official template catalog: `https://n8n.io/workflows/` → **Submit a template**.
+Published 2026-07-29:
+`https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-a-form-trigger/`.
 
 ## Primary submission
 
@@ -116,9 +118,9 @@ production path.
 - [x] Execute the primary workflow against production with synthetic data.
 - [x] Capture a workflow-canvas screenshot and one result screenshot after the
   successful run; confirm neither exposes an API key or upload token.
-- [ ] Paste the primary copy above into n8n Creator and submit only that
-  workflow. This step requires the publisher's interactive n8n account.
-- [ ] After publication, add the public template URL and date to
+- [x] Paste the primary copy above into n8n Creator and submit only that
+  workflow.
+- [x] After publication, add the public template URL and date to
   `docs/marketing/b2b-distribution-tracker.csv`.
 - [ ] Evaluate the channel by external MCP opens/fills, checkouts, and paid
   customers—not template views alone.
