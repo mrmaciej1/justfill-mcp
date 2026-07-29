@@ -3,7 +3,7 @@
   "name": "io.github.mrmaciej1/justfill",
   "title": "JustFill PDF Form Automation",
   "description": "Fill existing fillable, flat and scanned PDF forms from structured data; save reusable templates",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "websiteUrl": "https://justfill.app/mcp?utm_source=mcp_registry&utm_medium=directory&utm_campaign=b2b_pdf_automation_2026q3&utm_content=server_listing",
   "repository": {
     "url": "https://github.com/mrmaciej1/justfill-mcp",
@@ -19,7 +19,7 @@
     {
       "registryType": "pypi",
       "identifier": "justfill-mcp",
-      "version": "0.4.5",
+      "version": "0.4.6",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
