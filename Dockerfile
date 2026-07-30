@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # Glama exposes stdio MCP servers through mcp-proxy. Keep the proxy and the
 # Python server in one image so its build does not depend on NodeSource, uv's
 # Python installer, or a git clone performed inside the container.
