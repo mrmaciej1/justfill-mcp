@@ -5,7 +5,7 @@
     {
       "parameters": {
         "content": "### Before you run this workflow\n\nCreate a JustFill API key at https://justfill.app/account and replace the placeholder in **Config**. Open the exact recurring PDF once with a JustFill MCP client, review and name its fields, then save the template; every later run maps JSON deterministically without an AI model.",
-        "height": 280,
+        "height": 460,
         "width": 480,
         "color": 5
       },
@@ -21,7 +21,7 @@
     {
       "parameters": {
         "content": "### 1. Collect the document and values\n\nThe form accepts the recurring PDF plus a JSON object. Each JSON key should match a reviewed template field name, for example `company_name` or `invoice_number`.",
-        "height": 260,
+        "height": 460,
         "width": 400,
         "color": 7
       },
@@ -37,7 +37,7 @@
     {
       "parameters": {
         "content": "### 2. Upload the PDF safely\n\nJustFill creates a one-time upload URL, and n8n sends the file as binary multipart data. The workflow never embeds the PDF as base64 inside a JSON-RPC request.",
-        "height": 260,
+        "height": 460,
         "width": 600,
         "color": 7
       },
@@ -53,7 +53,7 @@
     {
       "parameters": {
         "content": "### 3. Reuse reviewed field names\n\nJustFill reuses the saved layout for this PDF. The Code node matches JSON keys to named fields without case or punctuation differences and reports any unmatched keys.",
-        "height": 260,
+        "height": 460,
         "width": 400,
         "color": 7
       },
@@ -69,7 +69,7 @@
     {
       "parameters": {
         "content": "### 4. Fill and return the original PDF\n\nJustFill writes the mapped values into the existing layout and returns a temporary download URL. The final form response redirects the user to that generated PDF.",
-        "height": 260,
+        "height": 460,
         "width": 600,
         "color": 7
       },
@@ -111,7 +111,7 @@
       "typeVersion": 2.2,
       "position": [
         240,
-        0
+        140
       ],
       "webhookId": "76a1b6a1-90d2-4f1e-9d55-1c6f0a8b1a01"
     },
@@ -135,7 +135,7 @@
       "typeVersion": 3.4,
       "position": [
         440,
-        0
+        140
       ]
     },
     {
@@ -166,7 +166,7 @@
       "typeVersion": 4.2,
       "position": [
         640,
-        0
+        140
       ]
     },
     {
@@ -180,7 +180,7 @@
       "notes": "Parses the MCP upload-slot response and preserves the submitted PDF as binary for the one-time upload.",
       "position": [
         840,
-        0
+        140
       ]
     },
     {
@@ -206,7 +206,7 @@
       "typeVersion": 4.2,
       "position": [
         1040,
-        0
+        140
       ]
     },
     {
@@ -239,7 +239,7 @@
       "typeVersion": 4.2,
       "position": [
         1240,
-        0
+        140
       ]
     },
     {
@@ -253,7 +253,7 @@
       "notes": "Maps submitted JSON keys to the stable field IDs from the previously reviewed JustFill template.",
       "position": [
         1440,
-        0
+        140
       ]
     },
     {
@@ -284,7 +284,7 @@
       "typeVersion": 4.2,
       "position": [
         1640,
-        0
+        140
       ]
     },
     {
@@ -298,7 +298,7 @@
       "notes": "Shapes the JustFill response into the temporary download contract used by the final redirect node.",
       "position": [
         1840,
-        0
+        140
       ]
     },
     {
@@ -314,7 +314,7 @@
       "typeVersion": 1,
       "position": [
         2040,
-        0
+        140
       ],
       "webhookId": "76a1b6a1-90d2-4f1e-9d55-1c6f0a8b1a02"
     }
