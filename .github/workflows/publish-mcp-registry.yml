@@ -23,6 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           version="$(jq -r '.version' server.json)"
+          server_name="$(jq -r '.name' server.json)"
           package_version="$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
           init_version="$(python3 -c 'import pathlib, re; print(re.search(r"__version__ = \"([^\"]+)\"", pathlib.Path("src/justfill_mcp/__init__.py").read_text()).group(1))')"
           gemini_version="$(jq -r '.version' gemini-extension.json)"
@@ -40,15 +41,17 @@ jobs:
             jq -e --arg version "$version" \
               '.info.version == $version and any(.info.requires_dist[]; test("^mcp<2"))'
 
-          registry_response="$(curl -fsSL 'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.mrmaciej1/justfill')"
-          if jq -e --arg version "$version" \
-            'any(.servers[]; .server.name == "io.github.mrmaciej1/justfill" and .server.version == $version)' \
+          registry_response="$(curl -fsSL --get --data-urlencode "search=$server_name" \
+            'https://registry.modelcontextprotocol.io/v0.1/servers')"
+          if jq -e --arg version "$version" --arg server_name "$server_name" \
+            'any(.servers[]; .server.name == $server_name and .server.version == $version)' \
             <<<"$registry_response" >/dev/null; then
             echo "already_published=true" >>"$GITHUB_OUTPUT"
           else
             echo "already_published=false" >>"$GITHUB_OUTPUT"
           fi
           echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "server_name=$server_name" >>"$GITHUB_OUTPUT"
 
       - name: Install the pinned MCP publisher
         if: steps.preflight.outputs.already_published != 'true'
@@ -79,20 +82,30 @@ jobs:
         shell: bash
         env:
           VERSION: ${{ steps.preflight.outputs.version }}
+          SERVER_NAME: ${{ steps.preflight.outputs.server_name }}
         run: |
           set -euo pipefail
           for attempt in {1..12}; do
-            response="$(curl -fsSL 'https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.mrmaciej1/justfill')"
-            if jq -e --arg version "$VERSION" \
+            response="$(curl -fsSL --get --data-urlencode "search=$SERVER_NAME" \
+              'https://registry.modelcontextprotocol.io/v0.1/servers')"
+            if jq -e --arg version "$VERSION" --arg server_name "$SERVER_NAME" \
               'any(.servers[];
-                .server.name == "io.github.mrmaciej1/justfill"
+                .server.name == $server_name
                 and .server.version == $version
                 and ._meta["io.modelcontextprotocol.registry/official"].isLatest == true
               )' <<<"$response" >/dev/null; then
-              echo "Verified io.github.mrmaciej1/justfill ${VERSION} as latest."
+              echo "Verified ${SERVER_NAME} ${VERSION} as latest."
               exit 0
             fi
             sleep 5
           done
           echo "Registry did not expose ${VERSION} as latest within 60 seconds." >&2
           exit 1
+
+      - name: Deprecate the previous discovery name
+        if: github.ref == 'refs/tags/v0.4.8' && steps.preflight.outputs.already_published != 'true'
+        continue-on-error: true
+        run: |
+          ./mcp-publisher status --status deprecated --all-versions --yes \
+            --message "Renamed to io.github.mrmaciej1/justfill-pdf-forms for PDF discovery; package and endpoint are unchanged." \
+            io.github.mrmaciej1/justfill

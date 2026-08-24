@@ -3,7 +3,7 @@
 Let AI agents (Claude, ChatGPT, n8n — any MCP client) detect, review and fill
 PDF form fields through [justfill.app](https://justfill.app).
 
-<!-- mcp-name: io.github.mrmaciej1/justfill -->
+<!-- mcp-name: io.github.mrmaciej1/justfill-pdf-forms -->
 
 ## Excel or CSV batch workflow
 

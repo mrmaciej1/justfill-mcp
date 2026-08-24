@@ -1,11 +1,23 @@
 [project]
 name = "justfill-mcp"
-version = "0.4.7"
-description = "JustFill MCP server — let AI agents detect, review and fill PDF form fields via justfill.app"
+version = "0.4.8"
+description = "Fill existing PDF forms from JSON or Excel with MCP agents; review fields and reuse templates"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
-keywords = ["mcp", "pdf", "forms", "form-filling", "ai-agents", "claude", "model-context-protocol"]
+keywords = [
+    "mcp",
+    "pdf",
+    "forms",
+    "form-filling",
+    "pdf-automation",
+    "pdf-mail-merge",
+    "excel-to-pdf",
+    "n8n",
+    "ai-agents",
+    "claude",
+    "model-context-protocol",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
