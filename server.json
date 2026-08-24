@@ -3,7 +3,7 @@
   "name": "io.github.mrmaciej1/justfill-pdf-forms",
   "title": "JustFill PDF Form Automation",
   "description": "Detect, review and fill existing PDF forms from JSON or Excel; reuse saved templates",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "websiteUrl": "https://justfill.app/mcp?utm_source=mcp_registry&utm_medium=directory&utm_campaign=b2b_pdf_automation_2026q3&utm_content=server_listing",
   "icons": [
     {
@@ -19,14 +19,14 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://justfill.app/api/mcp"
+      "url": "https://api.justfill.app/api/mcp"
     }
   ],
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "justfill-mcp",
-      "version": "0.4.8",
+      "version": "0.4.9",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

@@ -1,6 +1,6 @@
 [project]
 name = "justfill-mcp"
-version = "0.4.8"
+version = "0.4.9"
 description = "Fill existing PDF forms from JSON or Excel with MCP agents; review fields and reuse templates"
 readme = "README.md"
 license = "MIT"
