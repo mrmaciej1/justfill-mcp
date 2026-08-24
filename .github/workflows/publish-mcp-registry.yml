@@ -101,11 +101,3 @@ jobs:
           done
           echo "Registry did not expose ${VERSION} as latest within 60 seconds." >&2
           exit 1
-
-      - name: Deprecate the previous discovery name
-        if: steps.preflight.outputs.already_published != 'true'
-        continue-on-error: true
-        run: |
-          ./mcp-publisher status --status deprecated --all-versions --yes \
-            --message "Renamed to io.github.mrmaciej1/justfill-pdf-forms for PDF discovery; package and endpoint are unchanged." \
-            io.github.mrmaciej1/justfill
