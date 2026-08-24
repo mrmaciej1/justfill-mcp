@@ -21,7 +21,7 @@ import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, quote, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 LOGIN_TIMEOUT_S = 300
 
@@ -95,10 +95,17 @@ def main() -> int:
     server = HTTPServer(("127.0.0.1", port), Handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
-    url = (
-        f"{app_url}/authorize?port={port}&state={nonce}"
-        f"&name={quote('MCP on ' + (os.uname().nodename if hasattr(os, 'uname') else 'this computer'))}"
-    )
+    authorize_query = urlencode({
+        'port': port,
+        'state': nonce,
+        'name': 'MCP on ' + (os.uname().nodename if hasattr(os, 'uname') else 'this computer'),
+        # Fixed labels only: no hostname or document data enters attribution.
+        # Existing real first-touch attribution still wins in the web app.
+        'utm_source': 'mcp_cli',
+        'utm_medium': 'integration',
+        'utm_campaign': 'mcp_authorization',
+    })
+    url = f"{app_url}/authorize?{authorize_query}"
     print("Opening your browser to authorize JustFill MCP…")
     print(f"If it does not open, visit:\n  {url}\n")
     webbrowser.open(url)

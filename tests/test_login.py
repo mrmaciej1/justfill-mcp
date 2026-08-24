@@ -53,6 +53,10 @@ def test_login_happy_path_requires_and_accepts_nonce(monkeypatch, tmp_path):
 
     rc, url = _run_login(monkeypatch, tmp_path, browser)
     assert rc == 0
+    params = _params(url)
+    assert params["utm_source"] == "mcp_cli"
+    assert params["utm_medium"] == "integration"
+    assert params["utm_campaign"] == "mcp_authorization"
     saved = json.loads((tmp_path / "justfill" / "credentials.json").read_text())
     assert saved["api_key"] == "jf_live_testkey"
 
