@@ -31,6 +31,15 @@ nodes and can be inspected before adding credentials.
 [Inspect the source workflows and evidence](examples/n8n/README.md), or follow the
 [step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
 
+### Business example: recurring supplier intake
+
+An operations team can keep the supplier's required intake PDF unchanged,
+save its reviewed field layout once, and let n8n map approved vendor data from
+a webhook or CRM record into that exact form. The workflow returns a temporary
+filled-PDF link that can be reviewed before it is uploaded to Drive, attached
+to a draft email, or written back to the vendor record. The repository's
+synthetic supplier-intake PDF exercises this exact path without customer data.
+
 ## Gemini CLI extension
 
 Install the same reviewed MCP tools plus the included PDF workflow guidance:

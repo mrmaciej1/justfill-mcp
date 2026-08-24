@@ -4,7 +4,7 @@
   "nodes": [
     {
       "parameters": {
-        "content": "### Before you run this workflow\n\nCreate a JustFill API key at https://justfill.app/account and replace the placeholder in **Config**. Open the exact recurring PDF once with a JustFill MCP client, review and name its fields, then save the template; every later run maps JSON deterministically without an AI model.",
+        "content": "### Before you run this workflow\n\nFollow the guided setup and synthetic supplier-intake example:\nhttps://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=n8n&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=deterministic_template\n\nCreate a JustFill API key at https://justfill.app/account and replace the placeholder in **Config**. Open the exact recurring PDF once with a JustFill MCP client, review and name its fields, then save the template; every later run maps JSON deterministically without an AI model.",
         "height": 460,
         "width": 480,
         "color": 5

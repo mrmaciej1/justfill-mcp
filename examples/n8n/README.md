@@ -104,6 +104,12 @@ workflow without ML or customer data. For an exact recurring business PDF,
 review and save its layout once as described above; subsequent opens use the
 saved template deterministically.
 
+This sample models a real supplier-onboarding handoff: approved company data
+arrives from a form, CRM, or procurement system; n8n fills the organization's
+existing intake PDF; an operator reviews `output_mode`, warnings, and the
+generated file before delivery. Replacing the Form Trigger does not change the
+reviewed field mapping or the original PDF layout.
+
 The latest production audit evidence is in [`assets/`](assets/): the complete
 green workflow canvas, the filled result, and a sanitized execution report.
 The screenshots contain no API key, upload token, customer document, or real
