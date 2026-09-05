@@ -20,6 +20,23 @@ PDF + JSON data in → filled PDF out. **No AI model** — data maps to form
 fields by name using a saved JustFill template, so every run is deterministic
 and reviewable.
 
+The September 5, 2026 mapping update matches **exact normalized names**, preserves
+Unicode, and stops before `fill_pdf` on unmatched keys, ambiguous field names or
+duplicate targets. It no longer guesses using substrings or silently omits
+unmatched inputs. `null` becomes a blank value; nested objects and arrays are
+rejected. PDF fields omitted from the JSON remain optional. Use the repository
+JSON until the Creator Portal catalog update is published.
+
+Run the regression checks without n8n or credentials:
+`node --test examples/n8n/test-deterministic-mapping.mjs` (from the repository root).
+
+September 5 validation: the actual Code node ran against real production MCP
+upload/open/fill responses on the synthetic supplier PDF. All three values
+appeared in the clean output; an extra unknown key was rejected before filling.
+The temporary workspace and credential were removed. This is HTTP-plus-Code-node
+coverage, not a rerun inside the n8n engine; the older full-engine evidence below
+remains dated as such.
+
 ```
 Form (PDF + JSON) → mint upload slot → POST binary → open_pdf
   → map values by field name → fill_pdf → redirect to the filled PDF
@@ -83,7 +100,7 @@ as best-effort and manually review high-impact output. Put both keys (JustFill
    model calls.
 4. Run the form: upload the PDF, paste values as JSON keyed by field name:
    `{"age_score": "1", "bp_score": "1", "total_score": "5"}`.
-   Deterministic key matching is case- and punctuation-insensitive; the AI
+   Deterministic key matching is exact after case/punctuation normalization; the AI
    variant may also accept descriptive source keys that differ from field names.
 
 ## Reviewer-safe deterministic smoke test
