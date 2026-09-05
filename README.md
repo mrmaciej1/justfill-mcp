@@ -18,10 +18,15 @@ record, and exports the approved PDFs in a ZIP.
 ## Import-ready n8n workflows
 
 Start with the
-[free reviewed template in the official n8n workflow catalog](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-a-form-trigger/).
+[deterministic workflow JSON in this repository](examples/n8n/fill-pdf-workflow.json).
 It collects a PDF and JSON payload, reuses the reviewed field names saved for
 that exact form, fills the original layout and returns a temporary download
 link.
+
+The corrected version of n8n catalog template 17274 is under review as of
+September 5, 2026. Use the repository JSON while that update is unavailable.
+The workflow is free to download; running it uses a JustFill account and its
+PDF-processing allowance.
 
 The repository also includes the exact deterministic workflow JSON, synthetic
 test PDF, production evidence and a separate two-pass vision workflow for an

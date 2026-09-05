@@ -1,7 +1,10 @@
 # JustFill × n8n — PDF form filling
 
-The deterministic workflow is also available as a
-[free reviewed template in the official n8n catalog](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-a-form-trigger/).
+Download the [deterministic workflow JSON](fill-pdf-workflow.json) directly
+from this repository. The corrected version of n8n catalog template 17274 is
+under review as of September 5, 2026; the catalog copy is currently unavailable.
+The workflow is free to download; running it uses a JustFill account and its
+PDF-processing allowance.
 
 Two import-ready workflows (n8n → Workflows → Import from File). Both send the
 file through a one-time capability URL (`request_file_upload` → `post_url`, no
