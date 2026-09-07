@@ -5,6 +5,24 @@ PDF form fields through [justfill.app](https://justfill.app).
 
 <!-- mcp-name: io.github.mrmaciej1/justfill-pdf-forms -->
 
+## Hosted server — no local installation
+
+If your MCP client supports remote servers with OAuth, use this server URL:
+
+```text
+https://justfill.app/api/mcp
+```
+
+Connect from your client, sign in to JustFill, and review the access request.
+You do not need to install the Python package or copy an API key for this path.
+Access can be revoked in JustFill under Account → API Keys.
+
+[Connection guide](https://justfill.app/mcp?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_hosted).
+The client is MIT-licensed; PDF processing uses your JustFill account's allowance.
+For a first check, use a blank form and fictional values, and review the filled
+preview before exporting. Save the reviewed layout to reuse it with new data
+when the same form comes up again.
+
 ## Excel or CSV batch workflow
 
 If the source data is already in a spreadsheet and you need one filled copy of
@@ -78,7 +96,7 @@ positive costs nothing (leave it unfilled or remove it); a false negative is
 visible on the preview and fixable with one `add_field` call. Once reviewed,
 `save_template` makes every future fill of that form deterministic.
 
-## Setup
+## Local client setup
 
 ```bash
 uv tool install justfill-mcp
