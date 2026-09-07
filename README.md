@@ -41,10 +41,11 @@ It collects a PDF and JSON payload, reuses the reviewed field names saved for
 that exact form, fills the original layout and returns a temporary download
 link.
 
-The corrected version of n8n catalog template 17274 is under review as of
-September 5, 2026. Use the repository JSON while that update is unavailable.
+The corrected workflow is also available in the
+[n8n template library](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-an-n8n-form-trigger/).
 The workflow is free to download; running it uses a JustFill account and its
-PDF-processing allowance.
+PDF-processing allowance. It uses built-in nodes, not the separate JustFill
+community node.
 
 The repository also includes the exact deterministic workflow JSON, synthetic
 test PDF, production evidence and a separate two-pass vision workflow for an

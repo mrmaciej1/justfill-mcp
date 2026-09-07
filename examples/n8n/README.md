@@ -1,10 +1,14 @@
 # JustFill × n8n — PDF form filling
 
-Download the [deterministic workflow JSON](fill-pdf-workflow.json) directly
-from this repository. The corrected version of n8n catalog template 17274 is
-under review as of September 5, 2026; the catalog copy is currently unavailable.
+Open the [published n8n template](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-an-n8n-form-trigger/)
+or download the [deterministic workflow JSON](fill-pdf-workflow.json) directly
+from this repository. The catalog workflow includes the September 5 mapping
+fixes, verified against this source on September 8, 2026. Its description still
+mentions an older version; that warning predates the corrected publication.
 The workflow is free to download; running it uses a JustFill account and its
-PDF-processing allowance.
+PDF-processing allowance. It uses built-in HTTP Request and Code nodes and does
+not require the separate JustFill community node. Publication of this template
+does not mean that the community node is verified for n8n Cloud.
 
 Two import-ready workflows (n8n → Workflows → Import from File). Both send the
 file through a one-time capability URL (`request_file_upload` → `post_url`, no
@@ -27,8 +31,8 @@ The September 5, 2026 mapping update matches **exact normalized names**, preserv
 Unicode, and stops before `fill_pdf` on unmatched keys, ambiguous field names or
 duplicate targets. It no longer guesses using substrings or silently omits
 unmatched inputs. `null` becomes a blank value; nested objects and arrays are
-rejected. PDF fields omitted from the JSON remain optional. Use the repository
-JSON until the Creator Portal catalog update is published.
+rejected. PDF fields omitted from the JSON remain optional. The published
+catalog workflow and this JSON use the same mapping and fill logic.
 
 Run the regression checks without n8n or credentials:
 `node --test examples/n8n/test-deterministic-mapping.mjs` (from the repository root).
