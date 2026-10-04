@@ -5,6 +5,29 @@ PDF form fields through [justfill.app](https://justfill.app).
 
 <!-- mcp-name: io.github.mrmaciej1/justfill-pdf-forms -->
 
+## Fill PDF forms in ChatGPT
+
+[Install the published JustFill PDF Forms plugin](https://chatgpt.com/plugins/plugin_asdk_app_6abbb17596648191a60269f58bb5a972)
+from the ChatGPT plugin directory, then connect your JustFill account. This
+hosted path does not require installing the Python client or configuring an
+MCP server manually.
+
+Try this prompt with the one-page, six-field sample:
+
+```text
+Use JustFill to open https://justfill.app/examples/chatgpt/project-intake.pdf.
+List its fields and show a preview. Do not fill anything yet.
+```
+
+Ask for a filled preview with fictional values and approve it before generating
+the PDF. Save the reviewed layout, then open the same original blank PDF for
+the next client or project. Your saved template is available in the same
+JustFill account; generated files follow that account's plan.
+
+[Try the two-project example and download the real editable results](https://justfill.app/mcp?utm_source=github&utm_medium=referral&utm_campaign=chatgpt_plugin_launch_202610&utm_content=mcp_readme_chatgpt_example#chatgpt-worked-example).
+The example includes prompts for two fictional clients, the blank PDF, and
+two generated PDFs with their free-output watermark.
+
 ## Hosted server — no local installation
 
 If your MCP client supports remote servers with OAuth, use this server URL:
@@ -30,7 +53,7 @@ the same existing PDF per row, an MCP client is optional. The guided browser
 workflow imports XLSX or CSV, maps columns to reviewed PDF fields, previews each
 record, and exports the approved PDFs in a ZIP.
 
-[Try the five-row PDF mail merge sample](https://justfill.app/solutions/fill-pdf-from-excel?utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_excel_batch)
+[Try the five-row PDF mail merge sample](https://justfill.app/solutions/fill-pdf-from-excel?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_excel_batch)
 — no card or sales call.
 
 ## Import-ready n8n workflows
@@ -41,8 +64,10 @@ It collects a PDF and JSON payload, reuses the reviewed field names saved for
 that exact form, fills the original layout and returns a temporary download
 link.
 
-The corrected workflow is also available in the
+The workflow is listed in the
 [n8n template library](https://n8n.io/workflows/17274-fill-pdf-forms-from-json-data-with-justfill-and-an-n8n-form-trigger/).
+For new runs, import the current strict-mapping JSON from this repository,
+which includes the synthetic fixture and validation evidence alongside it.
 The workflow is free to download; running it uses a JustFill account and its
 PDF-processing allowance. It uses built-in nodes, not the separate JustFill
 community node.
@@ -53,7 +78,7 @@ unfamiliar form. Both call the hosted MCP endpoint with standard HTTP Request
 nodes and can be inspected before adding credentials.
 
 [Inspect the source workflows and evidence](examples/n8n/README.md), or follow the
-[step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
+[step-by-step n8n setup](https://justfill.app/integrations/n8n-fill-pdf-forms?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_n8n_workflows).
 
 ### Business example: recurring supplier intake
 
