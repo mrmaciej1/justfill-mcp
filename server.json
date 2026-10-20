@@ -1,17 +1,10 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.mrmaciej1/justfill-pdf-forms",
-  "title": "JustFill PDF Form Automation",
-  "description": "Detect, review and fill existing PDF forms from JSON or Excel; reuse saved templates",
-  "version": "0.4.10",
+  "title": "JustFill PDF Forms",
+  "description": "Detect and fill fields in fillable, flat and scanned PDF forms; save reusable templates",
+  "version": "0.4.11",
   "websiteUrl": "https://justfill.app/mcp?utm_source=mcp_registry&utm_medium=directory&utm_campaign=b2b_pdf_automation_2026q3&utm_content=server_listing",
-  "icons": [
-    {
-      "src": "https://justfill.app/mcp-icon.svg",
-      "mimeType": "image/svg+xml",
-      "sizes": ["any"]
-    }
-  ],
   "repository": {
     "url": "https://github.com/mrmaciej1/justfill-mcp",
     "source": "github"
@@ -19,14 +12,14 @@
   "remotes": [
     {
       "type": "streamable-http",
-      "url": "https://api.justfill.app/api/mcp"
+      "url": "https://justfill.app/api/mcp"
     }
   ],
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "justfill-mcp",
-      "version": "0.4.10",
+      "version": "0.4.11",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
