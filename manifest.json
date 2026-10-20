@@ -1,0 +1,44 @@
+{
+  "manifest_version": "0.4",
+  "name": "justfill-pdf-forms",
+  "display_name": "JustFill PDF Forms",
+  "version": "0.4.11",
+  "description": "Detect, review and fill fields in existing PDF forms, including flat PDFs and scans, and save reusable templates.",
+  "long_description": "JustFill PDF Forms completes the PDF you already have instead of recreating it. Open an authorized form and JustFill finds its fields: saved templates and native AcroForm fields are used exactly, and flat PDFs, scans and phone photos go through machine-learning field detection with a confidence score per field. The assistant shows you a visual preview of the detected boxes and of your values in place before it generates anything, then fills the original document. After a fill you can save the reviewed layout as a private template so recurring forms fill deterministically.",
+  "author": {
+    "name": "JustFill",
+    "email": "hello@justfill.app",
+    "url": "https://justfill.app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mrmaciej1/justfill-mcp.git"
+  },
+  "homepage": "https://justfill.app/mcp",
+  "documentation": "https://justfill.app/mcp",
+  "support": "https://justfill.app/contact",
+  "icon": "assets/icon-400x400.png",
+  "license": "MIT",
+  "privacy_policies": [
+    "https://justfill.app/privacy"
+  ],
+  "keywords": [
+    "pdf",
+    "forms",
+    "form-filling",
+    "ocr",
+    "templates",
+    "automation",
+    "documents"
+  ],
+  "server": {
+    "type": "uv",
+    "entry_point": "justfill-mcp",
+    "mcp_config": {
+      "command": "uvx",
+      "args": [
+        "justfill-mcp"
+      ]
+    }
+  }
+}
