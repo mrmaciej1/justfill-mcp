@@ -1,5 +1,10 @@
 # JustFill MCP Server
 
+[![mrmaciej1/justfill-mcp MCP server](https://glama.ai/mcp/servers/mrmaciej1/justfill-mcp/badges/score.svg)](https://glama.ai/mcp/servers/mrmaciej1/justfill-mcp)
+[![PyPI version](https://img.shields.io/pypi/v/justfill-mcp)](https://pypi.org/project/justfill-mcp/)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.mrmaciej1%2Fjustfill--pdf--forms-blue)](https://registry.modelcontextprotocol.io/v0.1/servers?search=justfill)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 Let AI agents (Claude, ChatGPT, n8n — any MCP client) detect, review and fill
 PDF form fields through [justfill.app](https://justfill.app).
 
@@ -30,7 +35,7 @@ two generated PDFs with their free-output watermark.
 
 ## Hosted server — no local installation
 
-If your MCP client supports remote servers with OAuth, use this server URL:
+If your MCP client supports remote Streamable HTTP servers with OAuth 2.1 (PKCE + Dynamic Client Registration) or Bearer API keys, use this server URL:
 
 ```text
 https://justfill.app/api/mcp
@@ -38,7 +43,7 @@ https://justfill.app/api/mcp
 
 Connect from your client, sign in to JustFill, and review the access request.
 You do not need to install the Python package or copy an API key for this path.
-Access can be revoked in JustFill under Account → API Keys.
+OAuth metadata is published at `https://justfill.app/.well-known/oauth-protected-resource` and `https://justfill.app/.well-known/oauth-authorization-server`; access can be revoked anytime in JustFill under Account → API Keys.
 
 [Connection guide](https://justfill.app/mcp?utm_source=github&utm_medium=referral&utm_campaign=b2b_pdf_automation_2026q3&utm_content=mcp_readme_hosted).
 The client is MIT-licensed; PDF processing uses your JustFill account's allowance.
